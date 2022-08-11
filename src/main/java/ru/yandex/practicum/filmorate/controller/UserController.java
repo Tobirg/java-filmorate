@@ -17,8 +17,8 @@ import java.util.Map;
 @RequestMapping("/users")
 @Slf4j
 public class UserController {
-    private int idCounter = 0;
-    private Map<Integer, User> database = new HashMap<>();
+    private long idCounter = 0;
+    private Map<Long, User> users = new HashMap<>();
 
     @PostMapping
     public HttpEntity<User> addUser(@Valid @RequestBody User user) {
@@ -26,29 +26,29 @@ public class UserController {
         if (user.getName().isBlank()) {
             user.setName(user.getLogin());
         }
-        database.put(user.getId(), user);
-        log.info("User created");
+        users.put(user.getId(), user);
+        log.info("User created. ID {}", user.getId());
         return ResponseEntity.status(HttpStatus.OK).body(user);
     }
 
     @PutMapping
     public HttpEntity<User> updateUser (@Valid @RequestBody User user) {
-        if (database.containsKey(user.getId())) {
-            database.put(user.getId(), user);
-            log.info("User updated");
+        if (users.containsKey(user.getId())) {
+            users.put(user.getId(), user);
+            log.info("User updated. ID {}", user.getId());
             return ResponseEntity.status(HttpStatus.OK).body(user);
         } else {
-            log.error("Wrong id");
+            log.error("User update fail! ID {} not found.", user.getId());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
     }
 
     @GetMapping
     public List<User> getUsers() {
-        return new ArrayList<>(database.values());
+        return new ArrayList<>(users.values());
     }
 
-    private int getNewId() {
+    private long getNewId() {
         return ++idCounter;
     }
 

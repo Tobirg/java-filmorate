@@ -17,35 +17,35 @@ import java.util.Map;
 @RequestMapping("/films")
 @Slf4j
 public class FilmController {
-    private int idCounter = 0;
-    private Map<Integer, Film> database = new HashMap<>();
+    private long idCounter = 0;
+    private Map<Long, Film> films = new HashMap<>();
 
     @PostMapping
     public HttpEntity<Film> addFilm(@Valid @RequestBody Film film) {
             film.setId(getNewId());
-            database.put(film.getId(), film);
-            log.info("Film added");
+            films.put(film.getId(), film);
+            log.info("Film created. ID {}", film.getId());
             return ResponseEntity.status(HttpStatus.OK).body(film);
     }
 
     @PutMapping
     public HttpEntity<Film> updateFilm(@Valid @RequestBody Film film) {
-        if (database.containsKey(film.getId())) {
-            database.put(film.getId(), film);
-            log.info("Film updated");
+        if (films.containsKey(film.getId())) {
+            films.put(film.getId(), film);
+            log.info("Film updated. ID {}", film.getId());
             return ResponseEntity.status(HttpStatus.OK).body(film);
         } else {
-            log.error("Wrong id");
+            log.error("Film update fail! ID {} not found.", film.getId());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
     }
 
     @GetMapping
     public List<Film> getFilms() {
-        return new ArrayList<>(database.values());
+        return new ArrayList<>(films.values());
     }
 
-    private int getNewId() {
+    private long getNewId() {
         return ++idCounter;
     }
 }
