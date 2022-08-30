@@ -1,51 +1,72 @@
 package ru.yandex.practicum.filmorate.controller;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.service.FilmService;
+import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
 
 import javax.validation.Valid;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/films")
 @Slf4j
 public class FilmController {
-    private long idCounter = 0;
-    private Map<Long, Film> films = new HashMap<>();
+
+    private final FilmStorage filmStorage;
+    private final FilmService filmService;
+
+    @Autowired
+    public FilmController(FilmStorage filmStorage, FilmService filmService) {
+        this.filmStorage = filmStorage;
+        this.filmService = filmService;
+    }
 
     @PostMapping
     public HttpEntity<Film> addFilm(@Valid @RequestBody Film film) {
-            film.setId(getNewId());
-            films.put(film.getId(), film);
-            log.info("Film created. ID {}", film.getId());
-            return ResponseEntity.status(HttpStatus.OK).body(film);
+        filmStorage.addFilm(film);
+        return ResponseEntity.status(HttpStatus.OK).body(film);
     }
 
     @PutMapping
     public HttpEntity<Film> updateFilm(@Valid @RequestBody Film film) {
-        if (films.containsKey(film.getId())) {
-            films.put(film.getId(), film);
-            log.info("Film updated. ID {}", film.getId());
-            return ResponseEntity.status(HttpStatus.OK).body(film);
-        } else {
-            log.error("Film update fail! ID {} not found.", film.getId());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
-        }
+        filmStorage.updateFilm(film);
+        return ResponseEntity.status(HttpStatus.OK).body(film);
     }
 
     @GetMapping
     public List<Film> getFilms() {
-        return new ArrayList<>(films.values());
+        return filmStorage.getFilms();
     }
 
-    private long getNewId() {
-        return ++idCounter;
+    @GetMapping("/{id}")
+    public Film getFilm(@PathVariable Long id) {
+        return filmStorage.getFilm(id);
+    }
+
+    @PutMapping("/{id}/like/{userId}")
+    public void putLike(@PathVariable Long id, @PathVariable Long userId) {
+        filmService.putLike(id, userId);
+        log.info("Like to film {} from user {} added", id, userId);
+    }
+
+    @DeleteMapping("/{id}/like/{userId}")
+    public void deleteLike(@PathVariable Long id, @PathVariable Long userId) {
+        filmService.deleteLike(id, userId);
+        log.info("Like to film {} from user {} removed", id, userId);
+    }
+
+    @GetMapping("/popular")
+    public List<Film> getPopularFilms(@RequestParam(required = false) Integer count) {
+        if (count != null) {
+            return filmService.getPopularFilms(count);
+        } else {
+            return filmService.getPopularFilms(10);
+        }
     }
 }
