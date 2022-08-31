@@ -1,13 +1,11 @@
 package ru.yandex.practicum.filmorate.storage.user;
 
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.model.User;
 
 import javax.validation.Valid;
 import java.util.*;
 
-@Slf4j
 @Component
 public class InMemoryUserStorage implements UserStorage {
     private long idCounter = 0;
@@ -19,18 +17,15 @@ public class InMemoryUserStorage implements UserStorage {
             user.setName(user.getLogin());
         }
         users.put(user.getId(), user);
-        log.info("User created. ID {}", user.getId());
         return user;
     }
 
-    public Optional<User> updateUser (@Valid User user) {
+    public User updateUser (@Valid User user) {
         if (users.containsKey(user.getId())) {
             users.put(user.getId(), user);
-            log.info("User updated. ID {}", user.getId());
-            return Optional.of(user);
+            return user;
         } else {
-            log.error("User update fail! ID {} not found.", user.getId());
-            return Optional.empty();
+            throw new NoSuchElementException("User update fail! ID " + user.getId() + " not found.");
         }
     }
     public User getUser(Long id) {

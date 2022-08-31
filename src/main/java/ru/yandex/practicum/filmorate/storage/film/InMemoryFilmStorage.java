@@ -1,13 +1,11 @@
 package ru.yandex.practicum.filmorate.storage.film;
 
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.model.Film;
 
 import javax.validation.Valid;
 import java.util.*;
 
-@Slf4j
 @Component
 public class InMemoryFilmStorage implements FilmStorage {
     private long idCounter = 0;
@@ -16,14 +14,12 @@ public class InMemoryFilmStorage implements FilmStorage {
     public Film addFilm(@Valid Film film) {
         film.setId(getNewId());
         films.put(film.getId(), film);
-        log.info("Film created. ID {}", film.getId());
         return film;
     }
 
     public Film updateFilm(@Valid Film film) {
         if (films.containsKey(film.getId())) {
             films.put(film.getId(), film);
-            log.info("Film updated. ID {}", film.getId());
             return film;
         } else {
             throw new NoSuchElementException("Film update fail! ID " + film.getId() + " not found.");
